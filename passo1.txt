@@ -1,0 +1,129 @@
+Passo1 della Caccia al Tesoro Linux
+
+Per poter procedere nella vostra avventura dovete trovare il file Passo2.gbz.
+Il file si trova in una directory del file system di questo Raspberry, a voi ignota.
+Potete procedere ad aprire tutte le directory/cartelle del file system ma impieghereste alcuni giorni per farlo.
+Per poter procedere dovete sfruttare le potenzialità del computer e chiedergli di aiutarvi a trovare questo file.
+
+Il sistema vi mette a disposizione un comando specifico per reggiungere questo scopo:
+find
+
+find è un comando dei sistemi operativi Unix e Unix-like, e più in generale dei sistemi POSIX[1] e GNU[2], che ricerca file e directory nel file system che soddisfano i criteri specificati, elencandone i nomi o eseguendo un comando per i risultati trovati.
+La sintassi generale di find è:
+
+find [opzioni] [--] dir1 [dir2 …] [direttiva1 …]
+I parametri dir indicano le directory a partire dalle quali effettuare la ricerca.
+
+I parametri direttiva specificano sia il criterio di ricerca che le azioni da intraprendere.
+
+Il doppio trattino -- (facoltativo) indica che i parametri successivi non sono da considerarsi opzioni.
+
+Tra le opzioni principali:
+
+-H
+Se tra i parametri del comando si specificano dei collegamenti simbolici, sono presi in considerazione per i confronti gli attributi dei file o delle directory reali (se esistenti) referenziate dai collegamenti simbolici, e non quelli propri dei collegamenti simbolici. Ciò vale solo per i parametri del comando find, e non per gli elementi incontrati durante la ricerca.
+-L
+In caso di collegamenti simbolici, sono presi in considerazione gli attributi dei file e/o delle directory reali indicate dai collegamenti simbolici, e non quelli dei collegamenti simbolici. Ciò vale sia per i collegamenti simbolici incontrati durante la ricerca che per gli eventuali collegamenti simbolici specificati tra i parametri di find.
+
+Le direttive indicano dei test da effettuare sul file o sulla directory in esame che possono essere superati o meno, oppure eseguono azioni o ancora modificano il comportamento di find.
+
+Tra le direttive più comuni vi sono:
+
+-name modello
+Supera il test se il nome del file o directory soddisfa il modello specificato. Il modello è una stringa secondo la sintassi per i glob pattern, ad esempio *.mp3 o main.[ch] (per come funziona la shell testuale occorre indicarlo tra apici singoli o doppi, oppure precedendo ogni metacarattere da una barra inversa).
+-type tipo
+Supera il test se il tipo di file corrisponde a quello indicato. tipo è un carattere che può valere:
+b: dispositivo a blocchi
+c: dispositivo a caratteri
+d: directory
+l: collegamento simbolico
+p: named pipe
+f: file regolare
+s: socket in dominio Unix.
+-user utente_o_UID
+Supera il test se il proprietario del file o directory è l'utente specificato. L'utente può essere indicato tramite il suo nome utente o tramite il suo user identifier numerico.
+-group gruppo_o_GID
+Supera il test se il gruppo assegnato al file o directory è quello specificato. Il gruppo può essere indicato per nome o tramite il suo group identifier numerico.
+-nouser
+Supera il test se il proprietario del file o directory non è tra gli utenti definiti nel sistema.
+-nogroup
+Supera il test se il gruppo assegnato al file o directory non è tra i gruppi definiti nel sistema.
+-mindepth: Esprime la minima profondità della ricerca all'interno delle subdirectories.
+-maxdepth: Esprime la massima profondità della ricerca all'interno delle subdirectories.
+-atime giorni
+Supera il test se la data di ultimo accesso in lettura al file o directory corrisponde a quella odierna meno il numero di giorni specificati. Per indicare una qualunque data posteriore si può usare il prefisso + (es. +10). Per indicare una qualunque data anteriore si può usare il prefisso - (es. -4).
+-mtime giorni
+Supera il test se la data di ultima modifica al file o directory corrisponde a quella odierna meno il numero di giorni specificati. Per indicare una qualunque data posteriore si può usare il prefisso + (es. +10). Per indicare una qualunque data anteriore si può usare il prefisso - (es. -4).
+-ctime giorni
+Supera il test se la data di creazione del file o directory corrisponde a quella odierna meno il numero di giorni specificati. Per indicare una qualunque data posteriore si può usare il prefisso + (es. +10). Per indicare una qualunque data anteriore si può usare il prefisso - (es. -4).
+-newer nome_file
+Supera il test se il file o directory in esame ha una data di ultima modifica posteriore a quella del file nome_file specificato.
+-prune
+Supera sempre il test, e se l'elemento in esame è una directory non discende in essa per effettuare ricerche. Da notare che la ricerche partono sempre da una directory, per cui non è sufficiente specificare questa direttiva da sola per evitare la ricorsione, ma occorre costruire un'espressione che permetta di discendere la directory di partenza.
+-print
+Scrive il nome del file o directory sullo standard output.
+-exec comando [arg1 …];
+Esegue il comando specificato con i parametri arg, sostituendo in essi la sequenza {} con il nome del file o directory in esame. L'ultimo dei parametri deve essere il carattere ; per indicare il termine della direttiva (per come funziona la shell testuale occorre indicarlo tra apici singoli o virgolette doppie, o preceduto da una barra inversa, ad esempio con ';' o \;). Ad esempio
+
+find . -type f -name "*.bak" -exec rm {} \;
+
+cerca e rimuove i file con estensione .bak eseguendo il comando rm tante volte quante sono i file trovati;
+-exec comando [arg1 …] {} +
+Esegue il comando specificato con i parametri arg e accodando ad essi, come parametri distinti, i nomi dei file o directory trovati. Ad esempio
+find . -type f -name "*.bak" -exec rm -f {} +
+cerca e rimuove i file con estensione .bak eseguendo il comando rm un'unica volta (o anche più volte, se il numero degli elementi trovati supera il massimo numero di parametri specificabili ad un comando), di fatto rendendo superfluo l'utilizzo in combinazione con il comando xargs. Questa seconda forma dell'opzione -exec è tuttavia più recente di quella precedente, e quindi è possibile che vecchie implementazioni di find non la supportino.
+Due direttive si possono combinare (AND logico) specificandole una di seguito all'altra o interponendo l'operatore -a. Ad esempio l'espressione -type f -user alice specifica che si stanno cercando dei file che appartengono all'utente alice. Se la prima direttiva non supera il test, la seconda non viene considerata, secondo la valutazione a corto circuito.
+
+Due o più direttive si possono porre in alternativa tra di loro (OR logico) interponendo l'operatore -o. Ad esempio l'espressione -name "*.h" -o -user bruno indica che si stanno cercando file o directory il cui nome termini per .h oppure che appartengano all'utente bruno. Se la prima direttiva supera il test, la seconda non viene considerata, secondo la valutazione a corto circuito.
+
+Le direttive si possono raggruppare racchiudendole in parentesi tonde. Ad esempio l'espressione ( -type f -user carla ) -o ( -type d -user daniele ) indica che si stanno cercando dei file appartenenti all'utente carla o delle directory appartenenti all'utente daniele. In alcune shell (ad esempio Bash) occorre proteggere le parentesi tonde precedendole con una barra inversa, ad esempio con \( e \), poiché ciò altrimenti andrebbe in conflitto con la sintassi ordinaria della shell.
+
+Una direttiva può essere negata precedendola con un punto esclamativo (!). Ad esempio l'espressione ! -type d indica che si stanno cercando elementi che non siano directory.
+
+Cerca nella directory corrente e in tutte le sue subdirectory i file regolari:
+
+find . -type f -print
+Cerca nelle directory /tmp e /var/tmp e nelle loro subdirectory i file regolari che sono stati modificati per l'ultima volta meno di dieci giorni fa e li cancella uno ad uno:
+
+find /tmp /var/tmp -type f -mtime -10 -exec rm -f {} \;
+Come l'esempio precedente, ma cancella i file a gruppi:
+
+find /tmp /var/tmp -type f -mtime -10 -exec rm -f {} +
+Cerca nella directory corrente e in tutte le sue subdirectory tutto ciò che non è un file o una directory (ad esempio trova collegamenti simbolici, dispositivi a blocchi, named pipe, etc.:
+
+find .  ! \( -type f -o -type d \) -print
+Elenca tutto ciò che si trova nella directory corrente, senza scendere nelle subdirectory (notare che funziona solo con la directory corrente perché ha il nome speciale .):
+
+find . ! -name . -prune -print
+Su AIX 6.1 questa sintassi non funziona. Per ottenere lo stesso risultato, ma anche in directory differenti dalla corrente eseguire:
+
+find /tmp/*.err
+Verranno visulaizzati i file *.err presenti nella sola directory /tmp
+
+Come trovare il file Passo2.gbz con find:
+
+occorre modificare il seguente comando che è stato disegnato per trovare a cancellate il file che cercate.
+find / -type f -name "Passo2.gbz” -exec rm {} \;
+
+ATTENZIONEEEEE!!!!
+Dovete modificate il comando riportato sopra togliendo la parte 
+-exec rm {} \;
+
+
+
+Una volta trovato il file PAsso2.gbz per poterlo leggere dovete scompattarlo.
+Questo file è stato compresso usando il programma tar con compression bzip.
+
+TAR
+
+Comando per scompartir un file .gbz
+
+tar xjf Passo2.gbz
+
+Ora potete leggere il file Passo2.txt:
+less Passo2.txt
+
+e procedere con la vostra caccia al tesoro.
+
+
+
